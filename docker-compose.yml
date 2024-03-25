@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+    db:
+        image: postgres:14
+        volumes:
+            - db_data:/var/lib/postgresql/data
+            - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+        ports:
+            - "15432:5432"
+        environment:
+            - POSTGRES_USER=it_online
+            - POSTGRES_PASSWORD=af2a37440a507e6416856908438ee0b9
+            - POSTGRES_DB=masters
+            - LANG=C.UTF-8
+            - TZ=Europe/Moscow
+        logging:
+            options:
+                max-file: "7"
+                max-size: "5m"
+        command: ["postgres", "-c", "log_statement=all"]
+
+    create_role:
+        image: postgres:14
+        depends_on:
+            - db
+        environment:
+            - PGPASSWORD=af2a37440a507e6416856908438ee0b9  # пароль администратора
+            - PGUSER=it_online  # ваш пользователь
+            - PGHOST=db  # имя вашего сервиса
+        entrypoint: bash -c "echo \"CREATE ROLE postgres LOGIN SUPERUSER;\" | psql -h db -U it_online masters"
+
+volumes:
+  db_data:
